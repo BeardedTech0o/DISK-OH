@@ -6,74 +6,112 @@ interface ScanCallback {
   (progress: ScanProgress): void
 }
 
-let scannedCount = 0
-let totalDirs = 0
+interface ScanCache {
+  [path: string]: FolderInfo
+}
+
+const scanCache: ScanCache = {}
 
 export async function scanDrive(
   drive: string,
   onProgress: ScanCallback
 ): Promise<FolderInfo> {
-  scannedCount = 0
-  totalDirs = 1
+  const normalizedDrive = normalizePath(drive)
+
+  // Check cache first
+  if (scanCache[normalizedDrive]) {
+    return scanCache[normalizedDrive]
+  }
 
   const root: FolderInfo = {
-    name: drive,
-    path: drive,
+    name: normalizedDrive,
+    path: normalizedDrive,
     size: 0,
     children: [],
     fileCount: 0,
   }
 
-  await scanDirectory(drive, root, onProgress)
+  let scannedCount = 0
+  let totalDirs = 1
+
+  async function scanDirectory(dirPath: string, parent: FolderInfo): Promise<void> {
+    try {
+      const entries = await fs.readdir(dirPath, { withFileTypes: true })
+      const folders: FolderInfo[] = []
+
+      for (const entry of entries) {
+        try {
+          const fullPath = path.join(dirPath, entry.name)
+
+          if (entry.isDirectory()) {
+            const folder: FolderInfo = {
+              name: entry.name,
+              path: fullPath,
+              size: 0,
+              children: [],
+              fileCount: 0,
+            }
+
+            folders.push(folder)
+            scannedCount++
+            totalDirs++
+
+            if (scannedCount % 10 === 0) {
+              onProgress({
+                current: scannedCount,
+                total: totalDirs,
+                percentage: Math.round(
+                  (scannedCount / Math.max(totalDirs, 1)) * 100
+                ),
+                currentPath: fullPath,
+              })
+            }
+
+            await scanDirectory(fullPath, folder)
+
+            parent.size += folder.size
+            parent.fileCount += folder.fileCount
+          } else {
+            try {
+              const stat = await fs.stat(fullPath)
+              parent.size += stat.size
+              parent.fileCount++
+            } catch {
+              // File may have been deleted, skip it
+            }
+          }
+        } catch {
+          // Skip inaccessible files/folders
+        }
+      }
+
+      parent.children = folders.sort((a, b) => b.size - a.size)
+    } catch {
+      // Skip directories we cannot read
+    }
+  }
+
+  await scanDirectory(normalizedDrive, root)
+  onProgress({
+    current: scannedCount,
+    total: totalDirs,
+    percentage: 100,
+    currentPath: normalizedDrive,
+  })
+
+  // Cache the result
+  scanCache[normalizedDrive] = root
   return root
 }
 
-async function scanDirectory(
-  dirPath: string,
-  parent: FolderInfo,
-  onProgress: ScanCallback
-): Promise<void> {
-  try {
-    const entries = await fs.readdir(dirPath, { withFileTypes: true })
+export function clearScanCache(): void {
+  Object.keys(scanCache).forEach(key => delete scanCache[key])
+}
 
-    for (const entry of entries) {
-      try {
-        const fullPath = path.join(dirPath, entry.name)
+export function getCachedScan(drivePath: string): FolderInfo | undefined {
+  return scanCache[normalizePath(drivePath)]
+}
 
-        if (entry.isDirectory()) {
-          const folder: FolderInfo = {
-            name: entry.name,
-            path: fullPath,
-            size: 0,
-            children: [],
-            fileCount: 0,
-          }
-
-          parent.children.push(folder)
-          scannedCount++
-          totalDirs++
-
-          onProgress({
-            current: scannedCount,
-            total: totalDirs,
-            percentage: Math.round((scannedCount / Math.max(totalDirs, 1)) * 100),
-            currentPath: fullPath,
-          })
-
-          await scanDirectory(fullPath, folder, onProgress)
-
-          parent.size += folder.size
-          parent.fileCount += folder.fileCount
-        } else {
-          const stat = await fs.stat(fullPath)
-          parent.size += stat.size
-          parent.fileCount++
-        }
-      } catch (err) {
-        // Skip files/folders we can't access
-      }
-    }
-  } catch (err) {
-    // Skip directories we can't access
-  }
+function normalizePath(drivePath: string): string {
+  return drivePath.replace(/\\/g, '/').toUpperCase()
 }
