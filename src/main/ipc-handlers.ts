@@ -18,7 +18,7 @@ export function setupIPCHandlers() {
     })
   })
 
-  ipcMain.handle(IPC_CHANNELS.DELETE_FILE, async (event, path: string) => {
+  ipcMain.handle(IPC_CHANNELS.DELETE_FILE, async (_event, path: string) => {
     return deleteFile(path)
   })
 }
