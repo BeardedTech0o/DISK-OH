@@ -2,25 +2,28 @@
   "name": "disk-oh",
   "version": "0.1.0",
   "description": "Modern disk space analyzer for Windows",
+  "author": "BeardedTech",
   "main": "dist/main/main.js",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "esbuild src/main/main.ts --bundle --outdir=dist/main --platform=node --external:electron --format=esm",
+    "build:renderer": "vite build",
     "test": "node --test src/main/smoke-tests.ts",
     "preview": "vite preview",
-    "electron-dev": "electron .",
-    "electron-build": "vite build && electron .",
-    "dist": "electron-builder",
-    "dist:win": "electron-builder --win"
+    "electron-dev": "npm run build:main && electron .",
+    "electron-build": "npm run build && electron .",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win"
   },
   "dependencies": {
+    "electron-updater": "^6.1.0",
+    "lucide-react": "^0.263.1",
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "recharts": "^2.10.0",
-    "tailwindcss": "^3.4.0",
-    "electron-updater": "^6.1.0",
-    "lucide-react": "^0.263.1"
+    "tailwindcss": "^3.4.0"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.2.0",
@@ -31,6 +34,7 @@
     "autoprefixer": "^10.4.16",
     "electron": "^30.0.0",
     "electron-builder": "^24.9.0",
+    "esbuild": "^0.28.1",
     "postcss": "^8.4.31",
     "typescript": "^5.3.3",
     "vite": "^5.0.7"
@@ -43,7 +47,7 @@
       "output": "dist"
     },
     "files": [
-      "dist/renderer/**/*",
+      "dist/**/*",
       "node_modules/**/*",
       "package.json"
     ],
