@@ -1,4 +1,7 @@
-# DiskOH - Modern Disk Space Analyzer
+<p align="center">
+  <img src="https://github.com/BeardedTech0o/DISK-OH/blob/main/banner.png?raw=true" alt="DISK-OH Banner" width="100%">
+</p>
+# DiskOH Disk Space Analyzer
 
 [![Build Status](https://github.com/BeardedTech0o/DISK-OH/actions/workflows/test.yml/badge.svg)](https://github.com/BeardedTech0o/DISK-OH/actions)
 
