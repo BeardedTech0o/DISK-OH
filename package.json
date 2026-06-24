@@ -36,13 +36,16 @@
     "vite": "^5.0.7"
   },
   "build": {
-    "appId": "com.beardedtech.diskoh",
+    "appId": "io.diskoh.app",
     "productName": "DiskOH",
     "directories": {
-      "buildResources": "public"
+      "buildResources": "public/icons",
+      "output": "dist"
     },
     "files": [
-      "dist/**/*"
+      "dist/renderer/**/*",
+      "node_modules/**/*",
+      "package.json"
     ],
     "win": {
       "target": [
@@ -52,13 +55,23 @@
             "x64"
           ]
         }
+      ],
+      "certificateFile": null,
+      "certificatePassword": null,
+      "signingHashAlgorithms": [
+        "sha256"
       ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
+      "allowElevation": true,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
+      "createStartMenuShortcut": true,
+      "shortcutName": "DiskOH",
+      "installerIcon": "public/icons/installer-icon.ico",
+      "uninstallerIcon": "public/icons/uninstaller-icon.ico",
+      "installerHeaderIcon": "public/icons/installer-header.ico"
     }
   }
 }
