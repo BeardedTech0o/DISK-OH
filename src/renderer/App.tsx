@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Treemap } from './components/Treemap'
 import { SettingsPanel } from './components/SettingsPanel'
+import { ComparisonView } from './components/ComparisonView'
 import { DriveInfo, FolderInfo, ScanProgress } from '../shared/types'
 import './App.css'
 
@@ -12,6 +13,8 @@ function App() {
   const [scanning, setScanning] = useState(false)
   const [scanProgress, setScanProgress] = useState<ScanProgress | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [showComparison, setShowComparison] = useState(false)
+  const [scannedData, setScannedData] = useState<Map<string, FolderInfo>>(new Map())
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
     return saved ? JSON.parse(saved) : window.matchMedia('(prefers-color-scheme: dark)').matches
@@ -52,6 +55,7 @@ function App() {
 
       const data = await window.electron.scanDrive(drive + ':')
       setFolderData(data)
+      setScannedData(prev => new Map(prev).set(drive, data))
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error'
       setError(`Scan failed: ${errorMsg}`)
@@ -104,8 +108,26 @@ function App() {
             </div>
           )}
 
-          {folderData ? (
-            <Treemap data={folderData} />
+          {showComparison ? (
+            <ComparisonView
+              drives={drives}
+              scannedData={scannedData}
+              onClose={() => setShowComparison(false)}
+            />
+          ) : folderData ? (
+            <div className="flex-1 flex flex-col">
+              <Treemap data={folderData} />
+              {scannedData.size > 1 && (
+                <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                  <button
+                    onClick={() => setShowComparison(true)}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
+                  >
+                    Compare {scannedData.size} Drives
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <div className="flex items-center justify-center flex-1">
               <div className="text-center">
