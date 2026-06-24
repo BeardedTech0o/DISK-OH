@@ -1,5 +1,5 @@
-import { Moon, Sun, X, Check, AlertCircle } from 'lucide-react'
-import { useState } from 'react'
+import { Moon, Sun, X, Check, AlertCircle, Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
 interface SettingsPanelProps {
   darkMode: boolean
@@ -13,21 +13,48 @@ export function SettingsPanel({
   onClose,
 }: SettingsPanelProps) {
   const [checkingUpdates, setCheckingUpdates] = useState(false)
-  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'available' | 'uptodate'>('idle')
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'npm-available' | 'app-available' | 'uptodate'>('idle')
+  const [npmUpdates, setNpmUpdates] = useState(0)
+  const [appUpdateVersion, setAppUpdateVersion] = useState<string | null>(null)
+  const [lastChecked, setLastChecked] = useState<Date | null>(null)
+
+  useEffect(() => {
+    window.electron.onUpdatesAvailable((data: any) => {
+      if (data.type === 'app') {
+        setAppUpdateVersion(data.version)
+        setUpdateStatus('app-available')
+      }
+    })
+
+    return () => {
+      window.electron.offUpdateReady()
+    }
+  }, [])
 
   async function handleCheckUpdates() {
     setCheckingUpdates(true)
     setUpdateStatus('checking')
+    setLastChecked(new Date())
 
     try {
       const result = await window.electron.checkUpdates()
-      setUpdateStatus(result ? 'available' : 'uptodate')
+
+      if (result.available) {
+        setNpmUpdates(result.count)
+        setUpdateStatus('npm-available')
+      } else {
+        setNpmUpdates(0)
+        setUpdateStatus('uptodate')
+      }
 
       setTimeout(() => {
         setCheckingUpdates(false)
-        setTimeout(() => setUpdateStatus('idle'), 3000)
-      }, 1500)
+        if (updateStatus === 'uptodate') {
+          setTimeout(() => setUpdateStatus('idle'), 2000)
+        }
+      }, 500)
     } catch (err) {
+      console.error('Check updates error:', err)
       setCheckingUpdates(false)
       setUpdateStatus('idle')
     }
@@ -77,6 +104,23 @@ export function SettingsPanel({
             <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide mb-4">
               Updates
             </h3>
+
+            {appUpdateVersion && (
+              <div className="mb-4 p-4 bg-amber-50 dark:bg-amber-900 rounded-lg border border-amber-200 dark:border-amber-800">
+                <div className="flex items-start gap-3">
+                  <Download size={18} className="text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="font-semibold text-amber-900 dark:text-amber-100">
+                      App Update Available
+                    </p>
+                    <p className="text-sm text-amber-800 dark:text-amber-200 mt-1">
+                      Version {appUpdateVersion} is downloading. Will install on next restart.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={handleCheckUpdates}
               disabled={checkingUpdates}
@@ -92,22 +136,30 @@ export function SettingsPanel({
               </div>
             )}
 
-            {updateStatus === 'available' && (
+            {updateStatus === 'npm-available' && (
               <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900 rounded-lg flex items-center gap-2">
                 <AlertCircle size={16} className="text-amber-600 dark:text-amber-400 flex-shrink-0" />
-                <p className="text-sm text-amber-900 dark:text-amber-100">Update available</p>
+                <p className="text-sm text-amber-900 dark:text-amber-100">
+                  {npmUpdates} npm package{npmUpdates !== 1 ? 's' : ''} available
+                </p>
               </div>
             )}
 
             {updateStatus === 'uptodate' && (
               <div className="mt-3 p-3 bg-green-50 dark:bg-green-900 rounded-lg flex items-center gap-2">
                 <Check size={16} className="text-green-600 dark:text-green-400 flex-shrink-0" />
-                <p className="text-sm text-green-900 dark:text-green-100">You are up to date</p>
+                <p className="text-sm text-green-900 dark:text-green-100">All up to date</p>
               </div>
             )}
 
-            <p className="text-xs text-slate-500 dark:text-slate-500 mt-3">
-              Automatically checks on startup. Updates install on next launch.
+            {lastChecked && (
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-3">
+                Last checked: {lastChecked.toLocaleTimeString()}
+              </p>
+            )}
+
+            <p className="text-xs text-slate-500 dark:text-slate-500 mt-2">
+              App updates check automatically every 6 hours.
             </p>
           </div>
 

@@ -2,7 +2,7 @@ import { app, BrowserWindow, Menu } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { setupIPCHandlers } from './ipc-handlers.js'
-import { checkUpdates } from './updater.js'
+import { setupUpdater } from './updater.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const isDev = process.env.NODE_ENV === 'development'
@@ -34,7 +34,7 @@ async function createWindow() {
   })
 
   setupIPCHandlers()
-  checkUpdates()
+  setupUpdater()
 }
 
 app.on('ready', createWindow)
