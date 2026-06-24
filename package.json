@@ -1,0 +1,64 @@
+{
+  "name": "disk-oh",
+  "version": "0.1.0",
+  "description": "Modern disk space analyzer for Windows",
+  "main": "dist/main/main.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "test": "node --test src/main/smoke-tests.ts",
+    "preview": "vite preview",
+    "electron-dev": "electron .",
+    "electron-build": "vite build && electron .",
+    "dist": "electron-builder",
+    "dist:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0",
+    "recharts": "^2.10.0",
+    "tailwindcss": "^3.4.0",
+    "electron-updater": "^6.1.0",
+    "lucide-react": "^0.263.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.2.0",
+    "@types/node": "^20.10.0",
+    "@types/react": "^18.2.43",
+    "@types/react-dom": "^18.2.17",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.16",
+    "electron": "^30.0.0",
+    "electron-builder": "^24.9.0",
+    "postcss": "^8.4.31",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.7"
+  },
+  "build": {
+    "appId": "com.beardedtech.diskoh",
+    "productName": "DiskOH",
+    "directories": {
+      "buildResources": "public"
+    },
+    "files": [
+      "dist/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

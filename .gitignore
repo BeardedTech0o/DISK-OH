@@ -1,0 +1,43 @@
+# Archives
+*.zip
+*.tar.gz
+*.rar
+*.7z
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+build/
+out/
+.next/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+.idea/
+*.suo
+*.user
+
+# Logs
+*.log
+npm-debug.log*
+
+# Misc
+.cache/
+*.tmp
+
+# Electron
+**/node_modules
