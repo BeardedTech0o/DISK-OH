@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:main && npm run build:renderer",
-    "build:main": "esbuild src/main/main.ts --bundle --outdir=dist/main --platform=node --external:electron --format=esm",
+    "build:main": "esbuild src/main/main.ts --outdir=dist/main --platform=node --format=esm",
     "build:renderer": "vite build",
     "test": "node --test src/main/smoke-tests.ts",
     "preview": "vite preview",
