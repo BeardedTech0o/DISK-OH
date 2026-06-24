@@ -1,10 +1,26 @@
-import { autoUpdater } from 'electron-updater'
 import { BrowserWindow, ipcMain } from 'electron'
 import { IPC_CHANNELS } from '../shared/constants.js'
 import { execSync } from 'child_process'
 
-export function setupUpdater() {
+let autoUpdater: any
+
+export async function setupUpdater() {
   if (process.env.NODE_ENV === 'development') {
+    return
+  }
+
+  try {
+    if (!autoUpdater) {
+      const mod = await import('electron-updater')
+      autoUpdater = mod.autoUpdater
+    }
+  } catch (err) {
+    console.error('Failed to load electron-updater:', err)
+    return
+  }
+
+  if (!autoUpdater) {
+    console.warn('autoUpdater not available')
     return
   }
 

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vite",
     "build": "npm run build:main && npm run build:renderer",
-    "build:main": "esbuild src/main/main.ts --outdir=dist/main --platform=node --format=esm",
+    "build:main": "esbuild src/main/*.ts --outdir=dist/main --platform=node --format=esm --bundle --external:electron --external:fs --external:fs/promises --external:path --external:url --external:child_process --external:os --external:util --external:stream --external:buffer --external:crypto --external:https --external:http --external:zlib --external:events --external:assert --external:net --external:process --external:graceful-fs --external:fs-extra --external:electron-updater",
     "build:renderer": "vite build",
     "test": "node --test src/main/smoke-tests.ts",
     "preview": "vite preview",
@@ -48,7 +48,7 @@
     },
     "files": [
       "dist/**/*",
-      "node_modules/**/*",
+      "!dist/win-unpacked",
       "package.json"
     ],
     "win": {

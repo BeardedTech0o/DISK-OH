@@ -9,7 +9,7 @@ const isDev = process.env.NODE_ENV === 'development'
 
 let mainWindow: BrowserWindow | null = null
 
-async function createWindow() {
+function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -34,7 +34,7 @@ async function createWindow() {
   })
 
   setupIPCHandlers()
-  setupUpdater()
+  setupUpdater().catch(err => console.error('Setup updater error:', err))
 }
 
 app.on('ready', createWindow)
