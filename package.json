@@ -52,6 +52,7 @@
       "package.json"
     ],
     "win": {
+      "icon": "public/icons/icon-256.ico",
       "target": [
         {
           "target": "nsis",
