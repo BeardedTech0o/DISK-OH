@@ -136,20 +136,15 @@ function App() {
 
               {scanning && scanProgress && (
                 <div className="p-6 border-b border-slate-200 dark:border-slate-700">
-                  <div className="flex items-center gap-4">
-                    <div className="flex-1">
-                      <div className="text-sm font-medium mb-2">
-                        Scanning: {scanProgress.percentage}%
-                      </div>
-                      <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2">
-                        <div
-                          className="bg-blue-600 h-2 rounded-full transition-all"
-                          style={{ width: `${scanProgress.percentage}%` }}
-                        />
-                      </div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400 mt-2">
-                        {scanProgress.currentPath}
-                      </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium mb-2">
+                      Scanning… {scanProgress.current.toLocaleString()} folders
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2 overflow-hidden">
+                      <div className="indeterminate-bar h-2 rounded-full bg-blue-600" />
+                    </div>
+                    <div className="text-xs text-slate-600 dark:text-slate-400 mt-2 truncate">
+                      {scanProgress.currentPath}
                     </div>
                   </div>
                 </div>
