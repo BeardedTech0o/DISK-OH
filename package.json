@@ -53,6 +53,7 @@
     ],
     "win": {
       "icon": "public/icons/icon-256.ico",
+      "requestedExecutionLevel": "requireAdministrator",
       "target": [
         {
           "target": "nsis",
