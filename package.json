@@ -47,8 +47,8 @@
       "output": "dist"
     },
     "files": [
-      "dist/**/*",
-      "!dist/win-unpacked",
+      "dist/main/**/*",
+      "dist/renderer/**/*",
       "package.json"
     ],
     "win": {
