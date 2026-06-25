@@ -12,7 +12,7 @@ export default defineConfig({
   build: {
     target: 'es2020',
     outDir: 'dist/renderer',
-    emptyOutDir: false,
+    emptyOutDir: true,
   },
   server: {
     port: 5173,
