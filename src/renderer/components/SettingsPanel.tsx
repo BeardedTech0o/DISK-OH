@@ -61,7 +61,7 @@ export function SettingsPanel({
   }
 
   return (
-    <div className="w-96 bg-slate-50 dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 flex flex-col">
+    <div className="w-96 max-w-[90vw] h-full bg-slate-50 dark:bg-slate-900 border-l border-slate-200 dark:border-slate-700 flex flex-col">
       <div className="p-6 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">
           Settings

@@ -82,7 +82,7 @@ function App() {
 
   return (
     <div className={darkMode ? 'dark' : ''}>
-      <div className="flex h-screen bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
+      <div className="relative flex h-screen overflow-hidden bg-white dark:bg-slate-950 text-slate-900 dark:text-white">
         {drivesLoaded ? (
           <Sidebar
             drives={drives}
@@ -100,7 +100,7 @@ function App() {
           </div>
         )}
 
-        <main className="flex-1 flex flex-col">
+        <main className="flex-1 flex flex-col min-w-0">
           {!drivesLoaded ? (
             <LoadingSkeleton />
           ) : error ? (
@@ -162,8 +162,11 @@ function App() {
                   onClose={() => setShowComparison(false)}
                 />
               ) : folderData ? (
-                <div className="flex-1 flex flex-col">
-                  <Treemap data={folderData} />
+                <div className="flex-1 flex flex-col min-h-0">
+                  <Treemap
+                    data={folderData}
+                    driveTotal={drives.find((d) => d.letter === selectedDrive)?.total}
+                  />
                   {scannedData.size > 1 && (
                     <div className="p-4 border-t border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                       <button
@@ -208,11 +211,19 @@ function App() {
         </main>
 
         {showSettings && (
-          <SettingsPanel
-            darkMode={darkMode}
-            onDarkModeChange={setDarkMode}
-            onClose={() => setShowSettings(false)}
-          />
+          <>
+            <div
+              className="absolute inset-0 bg-black/30 z-10"
+              onClick={() => setShowSettings(false)}
+            />
+            <div className="absolute right-0 top-0 h-full z-20 shadow-2xl">
+              <SettingsPanel
+                darkMode={darkMode}
+                onDarkModeChange={setDarkMode}
+                onClose={() => setShowSettings(false)}
+              />
+            </div>
+          </>
         )}
       </div>
     </div>

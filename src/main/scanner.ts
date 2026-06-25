@@ -35,60 +35,70 @@ export async function scanDrive(
   let totalDirs = 1
 
   async function scanDirectory(dirPath: string, parent: FolderInfo): Promise<void> {
+    let entries
     try {
-      const entries = await fs.readdir(dirPath, { withFileTypes: true })
-      const folders: FolderInfo[] = []
+      entries = await fs.readdir(dirPath, { withFileTypes: true })
+    } catch {
+      // Skip directories we cannot read (permission denied, etc.)
+      return
+    }
 
-      for (const entry of entries) {
-        try {
-          const fullPath = path.join(dirPath, entry.name)
+    const folders: FolderInfo[] = []
+    const fileStats: Promise<void>[] = []
 
-          if (entry.isDirectory()) {
-            const folder: FolderInfo = {
-              name: entry.name,
-              path: fullPath,
-              size: 0,
-              children: [],
-              fileCount: 0,
-            }
+    for (const entry of entries) {
+      const fullPath = path.join(dirPath, entry.name)
 
-            folders.push(folder)
-            scannedCount++
-            totalDirs++
+      // Skip reparse points / symlinks to avoid infinite loops and double-counting
+      if (entry.isSymbolicLink()) continue
 
-            if (scannedCount % 10 === 0) {
-              onProgress({
-                current: scannedCount,
-                total: totalDirs,
-                percentage: Math.round(
-                  (scannedCount / Math.max(totalDirs, 1)) * 100
-                ),
-                currentPath: fullPath,
-              })
-            }
+      if (entry.isDirectory()) {
+        const folder: FolderInfo = {
+          name: entry.name,
+          path: fullPath,
+          size: 0,
+          children: [],
+          fileCount: 0,
+        }
 
-            await scanDirectory(fullPath, folder)
+        folders.push(folder)
+        scannedCount++
+        totalDirs++
 
-            parent.size += folder.size
-            parent.fileCount += folder.fileCount
-          } else {
-            try {
-              const stat = await fs.stat(fullPath)
+        if (scannedCount % 25 === 0) {
+          onProgress({
+            current: scannedCount,
+            total: totalDirs,
+            percentage: Math.round((scannedCount / Math.max(totalDirs, 1)) * 100),
+            currentPath: fullPath,
+          })
+        }
+
+        await scanDirectory(fullPath, folder)
+
+        parent.size += folder.size
+        parent.fileCount += folder.fileCount
+      } else if (entry.isFile()) {
+        // Stat files in parallel — huge speedup over awaiting one-by-one
+        fileStats.push(
+          fs.stat(fullPath).then(
+            (stat) => {
               parent.size += stat.size
               parent.fileCount++
-            } catch {
-              // File may have been deleted, skip it
+            },
+            () => {
+              // File may have been deleted/locked, skip it
             }
-          }
-        } catch {
-          // Skip inaccessible files/folders
-        }
+          )
+        )
       }
-
-      parent.children = folders.sort((a, b) => b.size - a.size)
-    } catch {
-      // Skip directories we cannot read
     }
+
+    if (fileStats.length > 0) {
+      await Promise.all(fileStats)
+    }
+
+    parent.children = folders.sort((a, b) => b.size - a.size)
   }
 
   await scanDirectory(normalizedDrive, root)
@@ -113,5 +123,14 @@ export function getCachedScan(drivePath: string): FolderInfo | undefined {
 }
 
 function normalizePath(drivePath: string): string {
-  return drivePath.replace(/\\/g, '/').toUpperCase()
+  // Use backslashes for Windows
+  let p = drivePath.trim().replace(/\//g, '\\')
+
+  // A bare drive letter like "C:" refers to the *current directory* on that
+  // drive, NOT its root. Append a backslash so we scan the actual drive root.
+  if (/^[A-Za-z]:$/.test(p)) {
+    p = p + '\\'
+  }
+
+  return p
 }
